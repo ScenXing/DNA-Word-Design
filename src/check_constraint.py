@@ -1,8 +1,12 @@
 # Author: Nguyen Truong Duy
 # Email: truongduy134@gmail.com
 
+"""
+This module is for testing purpose. For example, it contains various function to check if a given list of DNA words satisfies a subset of constraints.
+"""
+
 # Self-written python modules
-import helper	
+import helper
 import algo_subroutine
 import free_energy_routine
 
@@ -10,311 +14,578 @@ import free_energy_routine
 import math
 
 ####################################################################################
-# checkc1(strset, k1):
-#	- Returns true if the input set of strings satisfies Basic Hamming Constraint
-#	- Returns false otherwise
-def checkc1(strset, k1):
-	numstr = len(strset)
-	
-	for indone in xrange(numstr):
-		for indtwo in xrange(indone + 1, numstr):
-			if not checkc1each(strset[indone], strset[indtwo], k1):
-				return False
-	return True
+# checkc1(strlist, k1):
+#
+# Time complexity: O(n^2 * l) where 
+#   + n is the size of the string list, and
+#   + l is the length of each string in the list
+def checkc1(strlist, k1):
+    """
+    Check if the input string list satisfies C1 constraint (Basic Hamming Constraint)
+
+    Inputs:
+    + strlist: a list of Python strings
+    + k1: parameter of C1 constraint
+
+    Output:
+    + True if the input string list satisfies C1(k1)
+    + False otherwise
+
+    Exception:
+    + a RuntimeError will be raised if the input strings do not have equal length
+    """
+
+    numstr = len(strlist)
+        
+    for indone in xrange(numstr):
+        for indtwo in xrange(indone + 1, numstr):
+            if not checkc1each(strlist[indone], strlist[indtwo], k1):
+                return False
+    return True
 
 # checkc1each(str1, str2, k1):
-#	- Returns true if the two input strings satisfy Basic Hamming Constraint 
-#	- Returns false otherwise
+#
+# Time complexity: O(l) where l is the length of str1, and str2
 def checkc1each(str1, str2, k1):
-	if k1 <= 0:
-		return True
-	return helper.hamming_dist(str1, str2) >= k1
+    """
+    Check if the input string pair satisfies C1 constraint (Basic Hamming Constraint)
+
+    Inputs:
+    + str1, str2: Python strings
+    + k1: parameter of C1 constraint
+
+    Output:
+    + True if the input string pair satisfies C1(k1), i.e. their Hamming distance is at least k1
+    + False otherwise
+
+    Exception:
+    + a RuntimeError will be raised if str1 and str2 do not have equal length
+    """
+
+    return helper.hamming_dist(str1, str2) >= k1
 
 ##########################################################################################
-# checkc2(strset, k2):
-#	- Returns true if the input set of strings satisfies Reverse Complementary Constraint
-def checkc2(strset, k2):
-	numstr = len(strset)
+# checkc2(strlist, k2):
+#
+# Time complexity: O(n^2 * l) where 
+#   + n is the size of the string list, and
+#   + l is the length of each string in the list
+def checkc2(strlist, k2):
+    """
+    Check if the input string list satisfies C2 constraint (Reverse Complementary Constraint)
 
-	for indone in xrange(numstr):
-		for indtwo in xrange(numstr):
-			if indone != indtwo:
-				if not checkc2each(strset[indone], strset[indtwo], k2):
-					return False
-	return True
+    Inputs:
+    + strlist: a list of Python strings
+    + k2: parameter of C2 constraint
+
+    Output:
+    + True if the input string list satisfies C2(k2)
+    + False otherwise
+
+    Exception:
+    + a RuntimeError will be raised if the input strings do not have equal length
+    """
+
+    numstr = len(strlist)
+
+    for indone in xrange(numstr):
+        for indtwo in xrange(numstr):
+            if indone != indtwo:
+                if not checkc2each(strlist[indone], strlist[indtwo], k2):
+                    return False
+    return True
 
 # checkc2each(str1, str2, k2):
-#	- Returns true if the two input strings satisfy Reverse Complementary Constraint 
-#	- Returns false otherwise
+#
+# Time complexity: O(l) where l is the length of str1, and str2 
 def checkc2each(str1, str2, k2):
-	if k2 <= 0:
-		return True
-	revcompstr2 = helper.reverse_str(helper.complement_str(str2))
-	return helper.hamming_dist(str1, revcompstr2) >= k2
+    """
+    Check if the input string pair satisfies C2 constraint (Reverse Complementary Constraint)
+
+    Inputs:
+    + str1, str2: Python strings
+    + k2: parameter of C2 constraint
+
+    Output:
+    + True if the input string pair satisfies C2(k2), i.e. their Hamming distance between str1 and the reverse of str2 is at least k2
+    + False otherwise
+
+    Exception:
+    + a RuntimeError will be raised if str1 and str2 do not have equal length
+    """
+
+    revcompstr2 = helper.reverse_str(helper.complement_str(str2))
+    return helper.hamming_dist(str1, revcompstr2) >= k2
 
 ###############################################################################################
-# checkc3(strset, k3):
-#	- Returns true if the input set of strings satisfies Self Reverse Complementary Constraint
-#	- Returns false otherwise 
-def checkc3(strset, k3):
-	numstr = len(strset)
+# checkc3(strlist, k3):
+#
+# Time complexity: O(n * l) where 
+#       + n is the size of the string list, and
+#       + l is the length of each string in the list
+def checkc3(strlist, k3):
+    """
+    Check if the input string list satisfies C3 constraint (Self Reverse Complementary Constraint)
 
-	for ind in xrange(numstr):
-		if not checkc3each(strset[ind], k3):
-			return False
-	return True
+    Inputs:
+    + strlist: a list of Python strings
+    + k3: parameter of C3 constraint
+
+    Output:
+    + True if the input string list satisfies C3(k3)
+    + False otherwise
+    """
+
+    numstr = len(strlist)
+
+    for ind in xrange(numstr):
+        if not checkc3each(strlist[ind], k3):
+            return False
+    return True
 
 # checkc3each(str1, k3):
-#	- Returns true if the input string satisfies Self Reverse Complementary Constraint 
-#	- Returns false otherwise
+#
+# Time complexity: O(l) where l is the length of str1
 def checkc3each(str1, k3):
-	if k3 <= 0:
-		return True
-	return checkc2each(str1, str1, k3)
+    """
+    Check if the input string satisfies C3 constraint (Self Reverse Complementary Constraint )
+
+    Inputs:
+    + str1: a Python string
+    + k3: parameter of C3 constraint
+
+    Output:
+    + True if the input string satisfies C3(k3), i.e. the Hamming distance between str1 and is reverse is at least k3
+    + False otherwise
+    """
+
+    if k3 <= 0:
+        return True
+    return checkc2each(str1, str1, k3)
 
 ################################################################################################
-# checkc4(strset, k4):
-#	- Returns true if the input set of strings satisfies Shifting Hamming Constraint
-#	- Returns false otherwise 
-def checkc4(strset, k4):
-	numstr = len(strset)
+# checkc4(strlist, k4):
+#
+# Time complexity: O(n^2 * l * k4) where 
+#   + n is the size of the string list, and
+#   + l is the length of each string in the list
+def checkc4(strlist, k4):
+    """
+    Check if the input string list satisfies C4 constraint (Shifting Hamming Constraint)
 
-	for indone in xrange(numstr):
-		for indtwo in xrange(numstr):
-			if indone != indtwo:
-				if not checkc4each(strset[indone], strset[indtwo], k4):
-					print "False with indone = " + str(indone) + " and indtwo = " + str(indtwo)
-					return False
-	return True
+    Inputs:
+    + strlist: a list of Python strings
+    + k4: parameter of C4 constraint
+
+    Output:
+    + True if the input string list satisfies C4(k4)
+    + False otherwise
+
+    Exception:
+    + a RuntimeError will be raised if the input strings do not have equal length
+    """
+
+    numstr = len(strlist)
+
+    for indone in xrange(numstr):
+        for indtwo in xrange(numstr):
+            if indone != indtwo:
+                if not checkc4each(strlist[indone], strlist[indtwo], k4):
+                    return False
+    return True
 
 # checkc4each(str1, str2, k4):
-#	- Returns true if the two input strings satisfy Shifting Hamming Constraint 
-#	- Returns false otherwise
+#
+# Time complexity: O(l * k4) where l is the length of str1, and of str2
 def checkc4each(str1, str2, k4):
-	len1 = len(str1)
-	len2 = len(str2)
-	if len1 != len2:
-		raise RuntimeError("Input strings should have equal length")
-	
-	mlen = len1
-	# Check corner cases
-	if k4 <= 0:
-		return True
-	if k4 > mlen:
-		return False
+    """
+    Check if the input string pair satisfies C4 constraint (Shifting Hamming Constraint )
 
-	for sublen in xrange(mlen - k4, mlen + 1):
-		if sublen == 0:
-			continue
-		hammingdist = helper.hamming_dist_substr(str1, 0, sublen - 1, str2, mlen - sublen, mlen - 1)
-		if hammingdist < (k4 - (mlen - sublen)):
-			print "False at i = " + str(sublen)
-			return False
-	
-	return True
+    Inputs:
+    + str1, str2: Python strings
+    + k4: parameter of C4 constraint
+
+    Output:
+    + True if the input string pair satisfies C4(k4)
+    + False otherwise
+
+    Exception:
+    + a RuntimeError will be raised if str1 and str2 do not have equal length
+    """
+
+    len1 = len(str1)
+    len2 = len(str2)
+    if len1 != len2:
+        raise RuntimeError("Input strings should have equal length")
+    
+    mlen = len1
+    # Check corner cases
+    if k4 <= 0:
+        return True
+    if k4 > mlen:
+        return False
+
+    for sublen in xrange(mlen - k4, mlen + 1):
+        if sublen == 0:
+            continue
+        hammingdist = helper.hamming_dist_substr(str1, 0, sublen - 1, str2, mlen - sublen, mlen - 1)
+        if hammingdist < (k4 - (mlen - sublen)):
+            return False
+    
+    return True
 
 ############################################################################################################
-# checkc5(strset, k5):
-#	- Returns true if the input set of strings satisfies Shifting Reverse Complementary Constraint
-#	- Returns false otherwise 
-def checkc5(strset, k5):
-	numstr = len(strset)
-	
-	for indone in xrange(numstr):
-		for indtwo in xrange(numstr):
-			if indone != indtwo:
-				if not checkc5each(strset[indone], strset[indtwo], k5):
-					return False
-	return True
+# checkc5(strlist, k5):
+#
+# Time complexity: O(n^2 * l * k5) where 
+#    + n is the size of the string list, and
+#    + l is the length of each string in the list    
+def checkc5(strlist, k5):
+    """
+    Check if the input string list satisfies C5 constraint (Shifting Reverse Complementary Constraint)
+
+    Inputs:
+    + strlist: a list of Python strings
+    + k5: parameter of C5 constraint
+
+    Output:
+    + True if the input string list satisfies C5(k5)
+    + False otherwise
+
+    Exception:
+     + a RuntimeError will be raised if the input strings do not have equal length
+    """
+
+    numstr = len(strlist)
+    
+    for indone in xrange(numstr):
+        for indtwo in xrange(numstr):
+            if indone != indtwo:
+                if not checkc5each(strlist[indone], strlist[indtwo], k5):
+                    return False
+    return True
 
 # checkc5each(str1, str2, k5):
-#	- Returns true if the two input strings satisfy Shifting Reverse Complementary Constraint
-#	- Returns false otherwise
+#
+# Time complexity: O(l * k5) where l is the length of str1, or str2
 def checkc5each(str1, str2, k5):
-	len1 = len(str1)
-	len2 = len(str2)
-	if len1 != len2:
-		raise RuntimeError("Input strings should have equal length")
-	
-	mlen = len1
-	# Check corner cases
-	if k5 <= 0:
-		return True
-	if k5 > mlen:
-		return False
+    """
+    Check if the input string pair satisfies C5 constraint (Shifting Reverse Complementary Constraint)
 
-	revcompstr2 = helper.reverse_str(helper.complement_str(str2))
-	for sublen in xrange(mlen - k5, mlen + 1):
-		if sublen == 0:
-			continue
+    Inputs:
+    + str1, str2: Python strings
+    + k5: parameter of C5 constraint
 
-		hammingdist = helper.hamming_dist_substr(str1, 0, sublen - 1, revcompstr2, 0, sublen - 1)
-		if hammingdist < (k5 - (mlen - sublen)):
-			return False
+    Output:
+    + True if the input string pair satisfies C5(k5)
+    + False otherwise
 
-		hammingdist = helper.hamming_dist_substr(str1, mlen - sublen, mlen - 1, revcompstr2, mlen - sublen, mlen - 1)
-		if hammingdist < (k5 - (mlen - sublen)):
-			return False
-	
-	return True
+    Exception:
+     + a RuntimeError will be raised if str1 and str2 do not have equal length
+    """
+
+    len1 = len(str1)
+    len2 = len(str2)
+    if len1 != len2:
+        raise RuntimeError("Input strings should have equal length")
+    
+    mlen = len1
+    # Check corner cases
+    if k5 <= 0:
+        return True
+    if k5 > mlen:
+        return False
+
+    revcompstr2 = helper.reverse_str(helper.complement_str(str2))
+    for sublen in xrange(mlen - k5, mlen + 1):
+        if sublen == 0:
+            continue
+
+        hammingdist = helper.hamming_dist_substr(str1, 0, sublen - 1, revcompstr2, 0, sublen - 1)
+        if hammingdist < (k5 - (mlen - sublen)):
+            return False
+
+        hammingdist = helper.hamming_dist_substr(str1, mlen - sublen, mlen - 1, revcompstr2, mlen - sublen, mlen - 1)
+        if hammingdist < (k5 - (mlen - sublen)):
+            return False
+    
+    return True
 
 #########################################################################################################
-# checkc6(strset, k6):
-#	- Returns true if the input set of strings satisfies Shifting Self Reverse Complementary Constraint
-#	- Returns false otherwise 
-def checkc6(strset, k6):
-	for mStr in strset:
-		if not checkc6each(mStr, k6):
-			return False
-	return True
+# checkc6(strlist, k6):
+#
+# Time complexity: O(n * l * k6) where 
+#    + n is the size of the string list, and
+#    + l is the length of each string in the list
+def checkc6(strlist, k6):
+    """
+    Check if the input string list satisfies C6 constraint (Shifting Self Reverse Complementary Constraint)
+
+    Inputs:
+    + strlist: a list of Python strings
+    + k6: parameter of C6 constraint
+
+    Output:
+    + True if the input string list satisfies C6(k6)
+    + False otherwise
+    """
+
+    for mstr in strlist:
+        if not checkc6each(mstr, k6):
+            return False
+    return True
 
 # checkc6each(str1, k6):
-#	- Returns true if the input string satisfies Shifting Self Reverse Complementary Constraint
-#	- Returns false otherwise
+#
+# Time complexity: O(l * k6) where l is the length of str1
 def checkc6each(str1, k6):
-	return checkc5each(str1, str1, k6)
+    """
+    Check if the input string satisfies C6 constraint (Shifting Self Reverse Complementary Constraint)
+
+    Inputs:
+    + str1: a Python string
+    + k6: parameter of C6 constraint
+
+    Output:
+    + True if the input string satisfies C6(k6)
+    + False otherwise
+    """
+    return checkc5each(str1, str1, k6)
 
 ##################################################################################################
-# checkc7(strset, ratio):
-#	- Returns true if the input set of strings satisfies GC Content Constraint
-#	- Returns false otherwise 
-def checkc7(strset, ratio):
-	for mStr in strset:
-		if not checkc7each(mStr, ratio):
-			return False
-	return True
+# checkc7(strlist, ratio):
+#
+# Time complexity: O(n * l) where 
+#    + n is the size of the string list, and
+#    + l is the length of each string in the list    
+def checkc7(strlist, ratio):
+    """
+    Check if the input string list satisfies C7 constraint (GC Content Constraint)
+
+    Inputs:
+    + strlist: a list of Python strings
+    + ratio: parameter of C7 constraint
+
+    Output:
+    + True if the input string list satisfies C7(ratio)
+    + False otherwise
+    """
+
+    for mstr in strlist:
+        if not checkc7each(mstr, ratio):
+            return False
+    return True
 
 # checkc7each(str1, ratio):
-#	- Returns true if the input string satisfies GC Content Constraint
-#	- Returns false otherwise
+#    - Returns true if the input string satisfies GC Content Constraint
+#    - Returns false otherwise
 def checkc7each(str1, ratio):
-	if ratio < 0 or ratio > 1:
-		return False
+    """
+    Check if the input string satisfies C7 constraint (GC Content Constraint)
 
-	len1 = len(str1)
-	nummustpresentCeil = int(math.ceil(ratio * len1))
-	nummustpresentFloor = int(ratio * len1)
+    Inputs:
+    + str1: a Python string
+    + ratio: parameter of C7 constraint
 
-	numpresent = 0
-	for mchar in str1:
-		if mchar == 'G' or mchar == 'C':
-			numpresent += 1
+    Output:
+    + True if the input string satisfies C7(ratio)
+    + False otherwise
+    """
+    if ratio < 0 or ratio > 1:
+        return False
 
-	return numpresent == nummustpresentFloor or numpresent == nummustpresentCeil
+    len1 = len(str1)
+    nummustpresentceil = int(math.ceil(ratio * len1))
+    nummustpresentfloor = int(ratio * len1)
+
+    numpresent = 0
+    for mchar in str1:
+        if mchar == 'G' or mchar == 'C':
+            numpresent += 1
+
+    return numpresent == nummustpresentfloor or numpresent == nummustpresentceil
 
 ##################################################################################################
-# checkc8(strset, maxlenrun):
-#	- Returns true if the input set of strings satisfyies Consecutive Base Constraint Constraint
-#	- Returns false otherwise
-def checkc8(strset, maxlenrun):
-	if maxlenrun <= 0:
-		return False
-	for mStr in strset:
-		if not checkc8each(mStr, maxlenrun):
-			return False
-	return True
+# checkc8(strlist, maxlenrun):
+#
+# Time complexity: O(n * l) where 
+#    + n is the size of the string list, and
+#    + l is the length of each string in the list
+def checkc8(strlist, maxlenrun):
+    """
+    Check if the input string list satisfies C8 constraint (Consecutive Base Constraint Constraint)
+
+    Inputs:
+    + strlist: a list of Python strings
+    + maxlenrun: parameter of C8 constraint
+
+    Output:
+    + True if the input string list satisfies C8(maxlenrun)
+    + False otherwise
+    """
+
+    if maxlenrun <= 0:
+        return False
+    for mstr in strlist:
+        if not checkc8each(mstr, maxlenrun):
+            return False
+    return True
 
 # checkc8each(str1, maxlenrun):
-#	- Returns true if the input string satisfies Consecutive Base Constraint Constraint
-#	- Returns false otherwise
+#
+# Time complexity: O(l) where l is the length of str1
 def checkc8each(str1, maxlenrun):
-	if maxlenrun <= 0:
-		return False
+    """
+    Check if the input string satisfies C8 constraint (Consecutive Base Constraint Constraint)
 
-	startind = 0
-	len1 = len(str1)
-	while startind < len1:
-		lenrun = 1
-		endind = startind + 1
-		while endind < len1 and str1[startind] == str1[endind]:
-			lenrun += 1
-			endind += 1
-		
-		if lenrun > maxlenrun:
-			return False
-		startind = endind		
+    Inputs:
+    + str1: a Python string
+    + maxlenrun: parameter of C8 constraint
 
-	return True
+    Output:
+    + True if the input string satisfies C8(maxlenrun)
+    + False otherwise
+    """
+    if maxlenrun <= 0:
+        return False
+
+    startind = 0
+    len1 = len(str1)
+    while startind < len1:
+        lenrun = 1
+        endind = startind + 1
+        while endind < len1 and str1[startind] == str1[endind]:
+            lenrun += 1
+            endind += 1
+        
+        if lenrun > maxlenrun:
+            return False
+        startind = endind        
+
+    return True
 
 ########################################################################################
-# checkc9(strset, sigma, pairwise_energy):
-#	- Returns true if the input set of strings satisfies Free Energy Constraint
-#	- Returns false otherwise
-def checkc9(strset, sigma, pairwise_energy):
-	numstr = len(strset)
+# checkc9(strlist, sigma, pairwise_energy):
+#
+# Time complexity: O(n * l + n^2) where 
+#    + n is the size of the string list, and
+#    + l is the length of each string in the list    
+def checkc9(strlist, sigma, pairwise_energy):
+    """
+    Check if the input string list satisfies C9 constraint (Free Energy Constraint)
 
-	for indone in xrange(numstr):
-		for indtwo in xrange(indone + 1, numstr):
-			if not checkc9each(strset[indone], strset[indtwo], sigma, pairwise_energy):
-				return False
-	return True
+    Inputs:
+    + strlist: a list of Python strings
+    + sigma: parameter of C9 constraint
+    + pairwise_energy: a function that takes in two inputs X and Y where X, Y in {'A', 'C', 'G', 'T'} and returns a non-negative integer indicating the free energy between the ordered pair (X, Y).
 
-# checkc9each(str1, str2, sigma, pairwise_energy):
-#	- Returns true if the two input strings str1 and str2 satisfy the Free Energy Constraint
-#	- Returns false otherwise
-def checkc9each(str1, str2, sigma, pairwise_energy):
-	free_energy1 = free_energy_routine.computeFreeEnergy(str1, pairwise_energy)
-	free_energy2 = free_energy_routine.computeFreeEnergy(str2, pairwise_energy)
+    Output:
+    + True if the input string list satisfies C9(sigma) with respect to the pairwise energy function
+    + False otherwise
+    """
 
-	return not (math.fabs(free_energy1 - free_energy2) > sigma)
+    numstr = len(strlist)
+
+    energylist = [free_energy_routine.compute_free_energy(strlist[ind], pairwise_energy) for ind in xrange(numstr)]
+
+    for indone in xrange(numstr):
+        for indtwo in xrange(indone + 1, numstr):
+            if math.fabs(energylist[indone] - energylist[indtwo]) > sigma:
+                return False
+    return True
 
 ###########################################################################################
-#
-def checkconstraintset(strset, mapTypeToParam):
-	checkfunclist = [checkc1, checkc2, checkc3, checkc4, checkc5, checkc6, checkc7, checkc8, checkc9]
-	
-	result = True
-	for typekey in mapTypeToParam:
-		if typekey >= 1 and typekey <= 9:
-			if typekey != 9:
-				result = checkfunclist[typekey - 1](strset, mapTypeToParam[typekey])
-			else:
-				result = checkfunclist[typekey - 1](strset, mapTypeToParam[typekey][0], mapTypeToParam[typekey][1])
+def checkconstraintset(strlist, maptypetoparam):
+    """
+    Check if the input string list satisfies a set of constraints.
 
-			if not result:
-				print typekey
-				return False
+    Inputs:
+    + strlist: a list of Python strings
+    + maptypetoparam: a dictionary that maps an integer (representing the constraint type) to the parameter corresponding to that constraint type. Note that if maptypetoparam contains 9 as a key, then maptypetoparam[9] should be a pair whose first entry is a parameter for C9 constraint, and second entry is a pairwise free energy function.
 
-	return True
+    Output:
+    + True if the input string list satisfies the set of constraints specified in maptypetoparam
+    + False otherwise
+    """
+
+    checkfunclist = [checkc1, checkc2, checkc3, checkc4, checkc5, checkc6, checkc7, checkc8, checkc9]
+    
+    result = True
+    for typekey in maptypetoparam:
+        if typekey >= 1 and typekey <= 9:
+            if typekey != 9:
+                result = checkfunclist[typekey - 1](strlist, maptypetoparam[typekey])
+            else:
+                result = checkfunclist[typekey - 1](strlist, maptypetoparam[typekey][0], maptypetoparam[typekey][1])
+
+            if not result:
+                print typekey
+                return False
+
+    return True
 
 ###########################################################################################
-#
-def checkGenDnaWord1To6And9Algo(strset, mapTypeToParam):
-	pairwise_energy = free_energy_routine.createPairwiseEnergyFunc(mapTypeToParam[9])
-	maxPairwise = free_energy_routine.findExtremePairwiseEnergy(pairwise_energy, max)
-	minPairwise = free_energy_routine.findExtremePairwiseEnergy(pairwise_energy, min)
-	D = maxPairwise - minPairwise
-	checkMapTypeToParam = mapTypeToParam.copy()
-	checkMapTypeToParam[9] = (4 * D + maxPairwise, pairwise_energy)
-	return checkConstraintSet(strset, checkMapTypeToParam)
+def checkgendnaword1to6and9algo(strlist, maptypetoparam):
+    """
+    Check if the input string list satisfies C1 through C6 constraint, and C9 constraint
+
+    Inputs:
+    + strlist: a list of Python strings
+    + maptypetoparam: a dictionary that maps an integer (representing the constraint type) to the parameter corresponding to that constraint type. It must have 1, 2, ..., 6 and 9 as keys. Note that maptypetoparam[9] is a 4 x 4 matrix of non-negative integers where rows and columns are indexed by typeArr = ['A', 'C', 'G', 'T'] in that order, presenting the pairwise free energy values.
+
+    Output:
+    + True if the input string list satisfies C1 through C6 constraints and C9(sigma) with respect to the pairwise energy function where sigma = 4 * (maxpairwise - minpairwise) + maxpairwise, and maxpairwise and minpairwise are the largest and smallest entries in maptypetoparam[9] respectively 
+    + False otherwise
+    """
+
+    pairwise_energy = free_energy_routine.create_pairwise_energy_func(maptypetoparam[9])
+    maxpairwise = free_energy_routine.find_extreme_pairwise_energy(pairwise_energy, max)
+    minpairwise = free_energy_routine.find_extreme_pairwise_energy(pairwise_energy, min)
+    D = maxpairwise - minpairwise
+    checkmaptypetoparam = maptypetoparam.copy()
+    checkmaptypetoparam[9] = (4 * D + maxpairwise, pairwise_energy)
+    return checkconstraintset(strlist, checkmaptypetoparam)
 
 ###########################################################################################
-# checklength14(l, n, k1, k4):
-#	- Returns true if l satisfies Lemma 6 with inputs n, k1, k4 (This is to guarantee
-#		Lemma 3 holds)
-#	- Returns false otherwise
-#
-# This is implemented based on Lemma 6
 def checklength14(l, n, k1, k4):
-	k = max(k1, k4)
-	if l < 2 * k:
-		return False
+    """
+    Check if the input values l, n, k1, k4 satisfy the following two conditions:
+       1) l >= 2 * k where k = max(k1, k4)
+       2) l - k * log(e) - k * log(l / k) - 2 * log(n) - 2 * log(k) > 0
 
-	expr = l - k * math.log(math.e, 2) - k * math.log(l * 1.0 / k, 2) - 2 * math.log(n, 2) - 2 * math.log(k, 2)
-	if expr > 0:
-		return True
-	return False
+    Inputs:
+    + l, n, k1, k4: integers
+
+    Output:
+    + True if l, n, k1, k1 satisfy the above two conditions
+    + False otherwise
+    """
+
+    k = max(k1, k4)
+    if l < 2 * k:
+        return False
+
+    expr = l - k * math.log(math.e, 2) - k * math.log(l * 1.0 / k, 2) - 2 * math.log(n, 2) - 2 * math.log(k, 2)
+    if expr > 0:
+        return True
+    return False
 
 #####################################################################################
-# checkExpCountEmpty(n, l, k1, k4):
-#	- Returns true if the input instance (n, l, k1, k4) satisfies the condition
-#		in Lemma 3, i.e.
-#			ExpCount(M, k1, k4) > nC2 * (1 + 2(k4 - 1)) - 1
-#	- Returns false otherwise
-def checkExpCountEmpty(n, l, k1, k4):
-	pascalPrefixSum = helper.generatePascalTriangle(l)
-	helper.getPrefixSumPascalTriangle(pascalPrefixSum)
+def checkexpcountempty(n, l, k1, k4):
+    """
+    Check if the input values l, n, k1, k4 satisfy that
+        ExpCount(M, k1, k4) > n * (n - 1) / 2 * (1 + 2(k4 - 1)) - 1
+    where M is a partially assigned matrix of size n x l where every entry is an unkown
 
-	expCount = algo_subroutine.computeExpCountEmpty(n, l, k1, k4, pascalPrefixSum)
-	rhs = (n * (n - 1) / 2) * (1 + 2 * (k4 - 1)) - 1
-	return expCount > rhs
+    Inputs:
+    + l, n, k1, k4: integers
+
+    Output:
+    + True if l, n, k1, k1 satisfy the above condition
+    + False otherwise
+    """
+    pascalprefixsum = helper.generate_prefix_sum_pascal_triangle(l)
+
+    expcount = algo_subroutine.compute_expcount_empty(n, l, k1, k4, pascalprefixsum)
+    rhs = (n * (n - 1) / 2) * (1 + 2 * (k4 - 1)) - 1
+    return expcount > rhs

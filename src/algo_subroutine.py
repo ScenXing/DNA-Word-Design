@@ -19,17 +19,29 @@ import math
 
 ###############################################################################
 # initlength14(n, k1, k4, delta):
-#	- Return an integer l indicating the length that satisfies Lemma 6.
 #
 # The implementation is based on Lemma 7.
 #
-# Assumption:
-#	n >= 2, max{k1, k4} >= 1, and delta is a positive real number
-#
-# If delta is not specified, the default value 0.1 is used.
 def initlength14(n, k1, k4, delta = 0.1):
 	"""
+	Return an integer l such that there exists a partially matrix M of size n x l such that ExpCount(M, k1, k4) > n * (n - 1) / 2 * (1 + (2 * (k4 - 1)) - 1; hence we can obtain a (k1, k4) distance matrix of size n x l from M
+
+	Inputs:
+	+ n, k1, k4: integers
+	+ delta: a real number. By default, delta = 0.1
+
+	Output:
+	+ l: an integer satisfying the above condition.
+
+	Assumption:
+	n >= 2 and k = max(k1, k4) >= 1, delta > 0. Otherwise, the correctness of the function is not guaranteed
+
+	Methodology
+	+ Let c1 = 2 + delta
+	+ Let c2 = 0.5 * c1 * {log(c1 / ((c1 - 2) * ln(2))) + 2.5 - 1 / ln(2)} 
+	+ Set l = ceil(c1 * log(n) + c2 * k) 
 	"""
+
 	c1 = 2 + delta
 	c2 = c1 / 2.0 * (math.log(c1 / ((c1 - 2) * math.log(2)), 2) + 2.5 - 1.0 / math.log(2))
 	k = max(k1, k4)
@@ -46,18 +58,20 @@ def initlength14(n, k1, k4, delta = 0.1):
 #	binary search to find the minimum length based on the initial length given
 #	as an input.
 #
-# Input description:
-#	- pascalprefixsum: is a 2D array with at least l + 1 rows. Row i has (i + 1) entries
-#	- pascalprefixsum[i][j] = sum ( iCh ) for h = 0, ..., j
-# Note: iCh denotes i Choose h
-#
-#	- initlength: an integer such that the distance matrix M of size n x initlength
-#		satisfies Lemma 3. For example, initlength can be a result returned
-#		by the function initlength14 (also implemented in this module)
-#
 # Time complexity: O(k4 * log(initlength)) 
 #	(This does not take into account the complexity of arithmetics)
 def binarysearchlength14(n, k1, k4, initlength, pascalprefixsum):
+	"""
+	Find an integer l which is the minimum length such that there exists a partially assigned matrix M of size n x l satisfying ExpCount(M, k1, k4) > n * (n - 1) / 2 * (1 + (2 * (k4 - 1)) - 1
+
+	Inputs:
+	+ n, k1, k4: integers
+	+ initlength: a positive integer such that there exists a partially assigned matrix M of size n x initlength satisfying the above condition (e.g. initlength can be the result returned by the function initlength14)
+	+ pascalprefixsum: a 2D array (which is essentially a Python list of lists of integers) with at least initlength + 1 rows. Row i has (i + 1) entries. And pascalprefixsum[i][j] = sum ( i Choose h ) for h = 0, ..., j
+
+	Output:
+	+ l: an integer indicating the minimum length satisfying the above condition 
+	"""
 	k = max(k1, k4)
 
 	######################################################################
@@ -70,6 +84,8 @@ def binarysearchlength14(n, k1, k4, initlength, pascalprefixsum):
 	# Time complexity: O(k4) due to our pre-computation of some values.
 	#	This does not take into account the complexity of arithmetics
 	def compute(l):
+		"""
+		"""
 		result = m_fraction.MyFraction(pascalprefixsum[l][k - 1], helper.fastpower(2, l))
 		
 		powtwo = helper.fastpower(2, l - k4 + 1)
@@ -83,18 +99,18 @@ def binarysearchlength14(n, k1, k4, initlength, pascalprefixsum):
 		result *= m_fraction.MyFraction((n * (n - 1)) / 2)
 		return result
 
-	leftL = 1
-	rightL = initlength
+	leftlen = 1
+	rightlen = initlength
 	minfound = initlength
 
-	while leftL <= rightL:
-		midL = leftL + ((rightL - leftL) >> 1)
-		val = compute(midL)
+	while leftlen <= rightlen:
+		midlen = leftlen + ((rightlen - leftlen) >> 1)
+		val = compute(midlen)
 		if val.numer < val.denom:
-			minfound = midL
-			rightL = midL - 1
+			minfound = midlen
+			rightlen = midlen - 1
 		else:
-			leftL = midL + 1
+			leftlen = midlen + 1
 
 	return minfound
 
@@ -110,6 +126,18 @@ def binarysearchlength14(n, k1, k4, initlength, pascalprefixsum):
 #	- pascalprefixsum[i][j] = sum ( iCh ) for h = 0, ..., j
 # Note: iCh denotes i Choose h   
 def compute_expcount_empty(n, l, k1, k4, pascalprefixsum):
+	"""
+	Compute the value of ExpCount(M, k1, k4) where M is an empty partially assigned matrix of size n x l (i.e. every entry is an unknown).
+
+	Inputs:
+	+ n, l: the number of rows and columns of M respectively
+	+ k1, k4: parameters of C1 and C4 constraint respectively
+	+ pascalprefixsum: a 2D array (which is essentially a Python list of lists of integers) with at least initlength + 1 rows. Row i has (i + 1) entries. And pascalprefixsum[i][j] = sum ( i Choose h ) for h = 0, ..., j
+
+	Output:
+	+  
+	"""
+
 	k = max(k1, k4)	
 	firstterm = m_fraction.MyFraction(((n * (n - 1)) / 2) * (1 + 2 * (k4 - 1)), 1)
 
@@ -118,7 +146,7 @@ def compute_expcount_empty(n, l, k1, k4, pascalprefixsum):
 	powtwo = helper.fastpower(2, l - k4 + 1)
 	sumtemp = m_fraction.MyFraction(0, 1)
 	for i in xrange(l - k4 + 1, l):
-		sumtemp += m_fraction.MyFraction(pascalprefixsum[i][k4 - (l - i) - 1], powtwo)			
+		sumtemp += m_fraction.MyFraction(pascalprefixsum[i][k4 - (l - i) - 1], powtwo)
 		powtwo *= 2
  	sumtemp *= m_fraction.MyFraction(2)
 	secondterm += sumtemp
@@ -309,4 +337,4 @@ def compute_change_in_prob(l, k, s, t, diffincrease, pascalprefixsum):
 			numer = pascalprefixsum[l - s - 1][k - 1 - t] - pascalprefixsum[l - s - 1][k - 2 - t]
 	if not diffincrease:
 		numer = -numer
-	return m_fraction.MyFraction(numer, denom) 				
+	return m_fraction.MyFraction(numer, denom)

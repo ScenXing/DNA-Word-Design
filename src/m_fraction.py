@@ -41,26 +41,26 @@ class MyFraction:
 
 	# Simplify fraction
 	def simplify(self):
-		iNumer = self.numer
-		if iNumer < 0:
-			iNumer = -iNumer
-		iDenom = self.denom
-		if iDenom < 0:
-			iDenom = -iDenom
-		mGcd = gcd(iNumer, iDenom)
+		inumer = self.numer
+		if inumer < 0:
+			inumer = -inumer
+		idenom = self.denom
+		if idenom < 0:
+			idenom = -idenom
+		mgcd = gcd(inumer, idenom)
 
-		if mGcd > 1:
-			self.numer /= mGcd
-			self.denom /= mGcd
+		if mgcd > 1:
+			self.numer /= mgcd
+			self.denom /= mgcd
 		if self.denom < 0:
 			self.numer = -self.numer
 			self.denom = -self.denom
 
 	# Add (+)
 	def __add__(self, other):
-		newNumer = self.numer * other.denom + self.denom * other.numer
-		newDenom = self.denom * other.denom
-		return MyFraction(newNumer, newDenom)
+		newnumer = self.numer * other.denom + self.denom * other.numer
+		newdenom = self.denom * other.denom
+		return MyFraction(newnumer, newdenom)
 
 	# Self add (+=)
 	def __iadd__(self, other):
@@ -71,9 +71,9 @@ class MyFraction:
 
 	# Mul operator (*)
 	def __mul__(self, other):
-		newNumer = self.numer * other.numer
-		newDenom = self.denom * other.denom
-		return MyFraction(newNumer, newDenom)
+		newnumer = self.numer * other.numer
+		newdenom = self.denom * other.denom
+		return MyFraction(newnumer, newdenom)
 
 	# Self mul operator (*=)
 	def __imul__(self, other):
@@ -84,9 +84,9 @@ class MyFraction:
 
 	# Subtract operator (-)
 	def __sub__(self, other):
-		newNumer = self.numer * other.denom - self.denom * other.numer
-		newDenom = self.denom * other.denom
-		return MyFraction(newNumer, newDenom)
+		newnumer = self.numer * other.denom - self.denom * other.numer
+		newdenom = self.denom * other.denom
+		return MyFraction(newnumer, newdenom)
 
 	# Comparision operator
 	def __eq__(self, other):
