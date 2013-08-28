@@ -1,6 +1,15 @@
 # Author: Nguyen Truong Duy
 # Email: truongduy134@gmail.com
 
+'''
+This module contains various functions related to free energy, such as
+  1. Compute the approximated free energy of a DNA word
+  2. Create a pairwise free energy function from the given matrix
+  3. Find the minimum free energy over all DNA word of a certain length
+  4. Solve the Bounded Free Energy Strand Generation using Dynamic Programming
+  5. Solve the Bounded Free Energy Strand Generation using Generating Function
+'''
+
 # Self-written modules
 import m_poly
 
@@ -49,7 +58,8 @@ def find_extreme_pairwise_energy(pairwiseenergy, extremefunc):
     extremeval = pairwiseenergy('A', 'A')
     for typeone in xrange(NUM_TYPE):
         for typetwo in xrange(NUM_TYPE):
-            extremeval = extremefunc(extremeval, pairwiseenergy(TYPE_ARR[typeone], TYPE_ARR[typetwo]))
+            extremeval = extremefunc(extremeval, \
+                 pairwiseenergy(TYPE_ARR[typeone], TYPE_ARR[typetwo]))
 
     return extremeval
 
@@ -75,7 +85,7 @@ def create_pairwise_energy_func(pairwiseenergymat, indarr = None):
         return pairwiseenergymat[maptypetoind[typeone]][maptypetoind[typetwo]]
     return pairwisefunc
 
-#################################################################################
+###############################################################################
 # compute_min_free_energy(l, pairwiseenergy):
 #
 # Methodology:
@@ -87,18 +97,21 @@ def create_pairwise_energy_func(pairwiseenergymat, indarr = None):
 #        min{f(l, 'A'), f(l, 'C'), f(l, 'G'), f(l, 'T')}
 #
 #    + Recurrence relation:
-#        f(l, c) = min{pairwiseenergy(c, d) + f(l - 1, d)} where d in {'A', 'C', 'G', 'T'}
+#        f(l, c) = min{pairwiseenergy(c, d) + f(l - 1, d)} 
+#      where d in {'A', 'C', 'G', 'T'}
 #    + Base cases:
 #        f(1, c) = 0 for all c
 #        f(0, c) = 0 for all c
 #
-#    + We implment compute_min_free_energy_dp with recursion and memoization to compute f
+#    + We implment compute_min_free_energy_dp with recursion 
+#      and memoization to compute f
 #
 # Time complexity: O(l)
 #
 # Note on the implementation:
-#    + We use integers to represent the type of nucleotide, i.e. i represents TYPE_ARR[i]
-#      (TYPE_ARR is a global variable) for i = 0, 1, 2, 3
+#    + We use integers to represent the type of nucleotide, i.e. 
+#      i represents TYPE_ARR[i] (TYPE_ARR is a global variable) 
+#      for i = 0, 1, 2, 3
 def compute_min_free_energy(l, pairwiseenergy):
     """
     Compute the minimum free energy among all possible values of all DNA strings of a given length with respect to the given pairwise energy function.
@@ -115,7 +128,9 @@ def compute_min_free_energy(l, pairwiseenergy):
 
     minenergy = compute_min_free_energy_dp(l, 0, pairwiseenergy, memotable)
     for typeid in xrange(1, NUM_TYPE):
-        minenergy = min(minenergy, compute_min_free_energy_dp(l, typeid, pairwiseenergy, memotable))
+        minenergy = min(minenergy, \
+                        compute_min_free_energy_dp(l, typeid,\
+                                    pairwiseenergy, memotable))
 
     return minenergy
 
@@ -126,14 +141,18 @@ def compute_min_free_energy(l, pairwiseenergy):
 #
 def compute_min_free_energy_dp(l, typeid, pairwiseenergy, memotable):
     """
+    Compute the minimum free energy, with respect to the given pairwise energy function, among all possible values of all DNA strings of a given length, and the first character is TYPE_ARR[typeid] (TYPE_ARR = ['A', 'C', 'G', 'T']).
 
     Inputs:
     + l: an integer indicating the length of a DNA word
-    +
+    + typeid: an index in TYPE_ARR (TYPE_ARR[typeid] denotes a DNA nucleobase)
     + pairwiseenergy: a function that takes in two inputs X and Y where X, Y in {'A', 'C', 'G', 'T'} and returns a non-negative integer indicating the free energy between the ordered pair (X, Y).
-    + memotable: 
+    + memotable: a 2D array (essentially a Python list of lists) which stores values previously computed by compute_min_free_energy_dp with respect to the state (typeid, l)
+
     Output:
+    + minenergy: an integer indicating the minimum free energy over all DNA words of length l and whose first base is TYPE_ARR[typeid]
     """
+
     if l <= 1:
         return 0
     if memotable[typeid][l - 1] >= 0:
@@ -142,79 +161,88 @@ def compute_min_free_energy_dp(l, typeid, pairwiseenergy, memotable):
     
     minenergy = -1
     for nexttypeid in xrange(NUM_TYPE):
-        energy = pairwiseenergy(TYPE_ARR[typeid], TYPE_ARR[nexttypeid]) + compute_min_free_energy_dp(l - 1, nexttypeid, pairwiseenergy, memotable)
+        energy = pairwiseenergy(TYPE_ARR[typeid], TYPE_ARR[nexttypeid]) +\
+                 compute_min_free_energy_dp(l - 1, nexttypeid,\
+                    pairwiseenergy, memotable)
         if minenergy < 0 or energy < minenergy:
             minenergy = energy
 
     memotable[typeid][l - 1] = minenergy
     return minenergy
 
-###############################################################################################
+#############################################################################
 # compute_exist_free_energy_dna_mat(maxlen, pairwiseenergy, maxenergy = -1):
-#    + Computes and returns a binary matrix M of dimension NUM_TYPE x maxlen x maxenergy 
-#      (where NUM_TYPE = 4) such that
-#        M[c][L][E] = 1 means there exists a DNA string of length (L + 1) that 
-#            starts with the character c and has free energy E
-#            with respect to the given pairwiseenergy function.
-#        M[c][L][E] = 0 otherwise 
 #
-# Input specification:
-#    + maxlen: an integer indicating the maximum length of a DNA string
-#    + pairwiseenergy: a function that takes in two inputs X and Y where
-#        X, Y in {'A', 'C', 'G', 'T'} and returns the free energy
-#        between the ordered pair (X, Y), which is an integer value.
-#    + maxenergy: an integer indicating the maximum energy we are considering.
-#        maxenergy = -1 if it is not specified.
-#
-# This is how we determine maxenergy (Note that our resulted matrix is of size maxlen x maxenergy):
+# This is how we determine E (Note that our resulted matrix 
+# is of size NUM_TYPE x maxlen x E):
 #    + Let W be maximum value among 16 values of pairwiseenergy
-#    + Let maxpossibleenergy = W * (maxlen - 1). maxpossibleenergy is the maximum free energy possible
-#        for all DNA strings of length maxlen
-#    + If maxenergy > 0 and maxenergy < maxpossibleenergy, then maxenergy = maxenergy
-#    + Otherwise, maxenergy = maxpossibleenergy
+#    + Let maxpossibleenergy = W * (maxlen - 1). maxpossibleenergy is the 
+#       maximum free energy possible for all DNA strings of length maxlen
+#    + If maxenergy > 0 and maxenergy < maxpossibleenergy, 
+#      then E = maxenergy + 1
+#    + Otherwise, E = maxpossibleenergy + 1
 #
 # Methodology to compute the matrix:
 #    + We use dynamic programming to solve this problem.
 #    + Define the function
 #        f(c, l, E) = 1 if there exists a DNA string of length l that 
-#            starts with the character c and has free energy E
+#            starts with the character TYPE_ARR[c] and has free energy E
 #        f(c, l, E) = 0 otherwise
 #    + We see that M[c][L][E] = f(c, L + 1, E)
 #    + Recurrence relation:
-#        f(c, l, E) = OR{f(d, l - 1, E - pairwiseenergy(c, d)} for d in {'A', 'C', 'G', 'T'}
+#        f(c, l, E) = OR{f(d, l - 1, E - 
+#                     pairwiseenergy(TYPE_ARR[c], TYPE_ARR[d])} 
+#           for d in {0, ..., NUM_TYPE - 1}
 #    + Base cases:
 #        f(c, l, 0) = 1 if l <= 1 for all c
 #        f(c, l, E) = 0 if l <= 1 and E > 0
 #        f(c, l, E) = 0 if E < 0
 #
-#    + We implment exist_free_energy_dna_dp with recursion and memoization to compute f
+#    + We implment exist_free_energy_dna_dp with recursion 
+#      and memoization to compute f
 #
 # Time complexity: O(L^2) (Note that maxenergy = O(L)
-#
-# Note on the implementation:
-#    + We use integers to represent the type of nucleotide, i.e. i represents TYPE_ARR[i]
-#      (TYPE_ARR is a global variable) for i = 0, 1, 2, 3
 #
 # Important note: M[c][L][E] = f(c, L + 1, E)
 #
 def compute_exist_free_energy_dna_mat(maxlen, pairwiseenergy, maxenergy = -1):
     """
-    Computes and returns a binary matrix M of dimension NUM_TYPE x maxlen x maxenergy (where NUM_TYPE = 4) such that
+    Compute binary matrix M of dimension NUM_TYPE x maxlen x E (where NUM_TYPE = 4 and E is determined by the function) such that
+       + M[c][l][e] = 1 means there exists a DNA string of length (l + 1) that starts with the character TYPE_ARR[c] (TYPE_ARR = ['A', 'C', 'G', 'T']) and has free energy e with respect to the given pairwiseenergy function.
+       + M[c][L][E] = 0 otherwise 
+
+    Inputs:
+     + maxlen: an POSITIVE integer indicating the maximum length of a DNA word considered
+     + pairwiseenergy: a function that takes in two inputs X and Y where X, Y in {'A', 'C', 'G', 'T'} and returns a non-negative integer indicating the free energy between the ordered pair (X, Y).
+     + maxenergy: the maximum free energy of a DNA word considered. By default, maxenergy = -1. The value of E is computed based on maxenergy and maxlen
+  
+    Output:
+     + M: a binary matrix of dimension NUM_TYPE x maxlen x E whose entries are either 0 and 1 that satisfies the above properties
+
+    Note: the correctness of the function is not guaranteed if maxlen < 1
+
+    How the function determines E:
+     + Let W be maximum value among 16 values of pairwiseenergy
+     + Let maxpossibleenergy = W * (maxlen - 1). That means maxpossibleenergy is the maximum free energy possible for all DNA strings of length maxlen
+     + If maxenergy > 0 and maxenergy < maxpossibleenergy, then E = maxenergy + 1
+     + Otherwise, E = maxpossibleenergy + 1 
     """
 
     # Find maximum possible energy which is equal to
     #    (maxlen - 1) * maxpairwiseenergy
-    # where maxpairwiseenergy = max(pairwiseenergy(X, Y)) (X, Y can be 'A', 'C', 'G', 'T')
+    # where maxpairwiseenergy = max(pairwiseenergy(X, Y)) 
+    # (X, Y can be 'A', 'C', 'G', 'T')
     maxpairwiseenergy = find_extreme_pairwise_energy(pairwiseenergy, max)
     maxpossibleenergy = (maxlen - 1) * maxpairwiseenergy
     if maxenergy < 0 or maxenergy > maxpossibleenergy:
         maxenergy = maxpossibleenergy
 
     # Declare and initialize existence matrix
-    existmat = [[[-1] * (maxenergy + 1) for l in xrange(maxlen)] for typeid in xrange(NUM_TYPE)]
+    existmat = [[[-1] * (maxenergy + 1) for l in xrange(maxlen)]\
+               for typeid in xrange(NUM_TYPE)]
 
-    # Repeatedly call the recursive routine (with memoization) to compute all entries of 
-    # the existence matrix
+    # Repeatedly call the recursive routine (with memoization) 
+    # to compute all entries of the existence matrix
     for typeid in xrange(NUM_TYPE):
         for l in xrange(maxlen):
             for energy in xrange(maxenergy + 1):
@@ -230,6 +258,18 @@ def compute_exist_free_energy_dna_mat(maxlen, pairwiseenergy, maxenergy = -1):
 #
 def exist_free_energy_dna_dp(l, typeid, freeenergy, pairwiseenergy, memotable):
     """
+    Determine if there exists a DNA word of length l, starting with a character (or nucleobase) TYPE_ARR[typeid] (TYPE_ARR = ['A', 'C', 'G', 'T']) and having the approximated free energy equal to freeenergy with respect to the given pairwise free energy function.
+
+    Inputs:
+     + l: an integer indicating the length of a DNA word
+     + typeid: an index in TYPE_ARR (TYPE_ARR[typeid] denotes a DNA nucleobase)
+     + freeenergy: a integer indicating the free energy of a DNA word
+     + pairwiseenergy: a function that takes in two inputs X and Y where X, Y in {'A', 'C', 'G', 'T'} and returns a non-negative integer indicating the free energy between the ordered pair (X, Y).
+     + memotable: a 3D array of dimension which stores values previously computed by exist_free_energy_dna_dp with respect to the state (typeid, l - 1, freeenergy)
+
+    Output:
+     + existflg = 1 if there exists a DNA word satisfying all the three conditions above.
+     + existflg = 0 otherwise    
     """
     if freeenergy < 0:
         return 0
@@ -252,18 +292,6 @@ def exist_free_energy_dna_dp(l, typeid, freeenergy, pairwiseenergy, memotable):
 
 ##############################################################################################
 # construct_bounded_energy_dna_list(triplelist, pairwiseenergy):
-#     + Constructs and returns the list of DNA strings with length and bounded energy 
-#      satisfied the conditions specified in triplelist. 
-#
-# Input specification:
-#    + triplelist: a list of triples (l, A, B). Each triple (l, A, B) contains information
-#        about the DNA we want to construct:
-#            - l: the length of the DNA string
-#            - A: the lower bound of the free energy of the DNA string
-#            - B: the upper bound of the free energy of the DNA string
-#    + pairwiseenergy: a function that takes in two inputs X and Y where
-#        X, Y in {'A', 'C', 'G', 'T'} and returns the free energy
-#        between the ordered pair (X, Y), which is an integer value.
 #
 # Detailed Flow:
 #    + Let L be the maximum length of all DNA strings we want to construct
@@ -285,6 +313,17 @@ def exist_free_energy_dna_dp(l, typeid, freeenergy, pairwiseenergy, memotable):
 #    - O(n * L) is due to constructing n bounded free energy DNA strings of length at most L
 def construct_bounded_energy_dna_list(triplelist, pairwiseenergy):
     """
+    Construct a list of DNA strings with length and bounded free energy satisfied the conditions specified in triplelist. This is an implementation of dynamic programming algorithm to solve the Bounded Energy Strand Generation Problem.
+
+    Inputs:
+     + triplelist: a list of triples (l, A, B). Each triple (l, A, B) contains information about the DNA we want to construct:
+        - l: the length of the DNA string
+        - A: the lower bound of the free energy of the DNA string
+        - B: the upper bound of the free energy of the DNA string
+     + pairwiseenergy: a function that takes in two inputs X and Y where X, Y in {'A', 'C', 'G', 'T'} and returns a non-negative integer indicating the free energy between the ordered pair (X, Y).
+
+    Output:
+     + a list of DNA strings with length and bounded free energy satisfied the conditions specified in triplelist 
     """
     numdna = len(triplelist)
     if numdna == 0:
@@ -339,37 +378,46 @@ def construct_bounded_energy_dna_list(triplelist, pairwiseenergy):
     
 ##############################################################################################
 # construct_free_energy_dna(l, energy, pairwiseenergy, existmat):
-#    + Constructs and returns a DNA string of length l and having free energy as specified
-#        in the second parameter with respect to the input pairwiseenergy function
 #
-# Input specfication:
-#    + l: an integer indicating the length of the DNA string to be constructed
-#    + energy: the free energy of the DNA string to be constructed
-#    + pairwiseenergy: a function that takes in two inputs X and Y where
-#        X, Y in {'A', 'C', 'G', 'T'} and returns the free energy
-#        between the ordered pair (X, Y), which is an integer value.
-#    + existmat: a 3D array of dimension NUM_TYPE x L x E (using the function
-#        compute_exist_free_energy_dna_mat) (NUM_TYPE = 4 typically) such that:
-#            - L >= l
-#            - E > energy
-#            - M[c][l][e] = 1 means there exists a DNA string of length (l + 1) that 
-#                starts with the character c and has free energy e
-#                with respect to the given pairwiseenergy function.
-#            - M[c][l][e] = 0 otherwise
+# Note: existmat is of dimension NUM_TYPE x L x E
 #
 # Detail:
-#    + Clearly, if l < 1, then we return the empty string
-#    + For the first character c1 of the DNA, we choose any c1 among {'A', 'C', 'G', 'T'} such that
-#        existmat[c1][l - 1][energy] = 1
+#    + Clearly, if l < 1 or l > L or energy >= E, then we return the empty string
+#    + For the first character TYPE_ARR[c1] of the DNA, we choose any 0 <= c1 < NUM_TYPE such that
+#        existmat[c1][l - 1][energy] = 1. If no such c1 exists, return the empty string as well
 #    + For the second character c2 of the DNA, our problem now becomes finding a DNA string of length
-#        l - 1, starting with c2 and have energy equals to energy - pairwiseenergy(c1, c2). This 
-#        means we choose any c2 among {'A', 'C', 'G', 'T'} such that
-#            existmat[c2][l - 2][energy - pairwiseenergy(c1, c2)] = 1
-#    + Continue in this manner until we find all n characters
+#        l - 1, starting with TYPE_ARR[c2] and have energy equal to 
+#        energy - pairwiseenergy(TYPE_ARR[c1], TYPE_ARR[c2]). This means we choose any c2 between 0 and 
+#        NUM_TYPE - 1 such that 
+#           existmat[c2][l - 2][energy - pairwiseenergy(TYPE_ARR[c1], TYPE_ARR[c2])] = 1
+#    + Continue in this manner until we find all l characters
 #
-# Time complexity: O(l)
+# Time complexity: O(L)
 def construct_free_energy_dna(l, energy, pairwiseenergy, existmat):
+    """
+    Construct a DNA string of length l and having free energy as specified in the second parameter with respect to the input pairwiseenergy function
+
+    Inputs:
+    + l: length of a DNA word to be constructed
+    + energy: the free energy that the constructed DNA should have
+    + pairwiseenergy: a function that takes in two inputs X and Y where X, Y in {'A', 'C', 'G', 'T'} and returns a non-negative integer indicating the free energy between the ordered pair (X, Y).
+    + existmat: a 3D matrix of dimension NUM_TYPE x L x E where
+      - NUM_TYPE = 4
+      - L is maximum length of a DNA word to be considered
+      - E - 1 is maximum free energy of a DNA word to be considered
+      such that M[c][l][e] = 1 means there exists a DNA string of length (l + 1) that starts with the character (or nucleobase) TYPE_ARR[c] (TYPE_ARR = ['A', 'C', 'G', 'T']) and has free energy e. Otherwise, M[c][l][e] = 0
+        
+    Output:
+    + dnastr: a Python string representing a DNA word of length l and having free energy equal to the second input parameter, OR an empty string if l < 1 or l > L or energy >= E or if such a DNA word does not exist
+    """
+    # Extreme cases (To prevent out-of-bound memory access)
     if l < 1:
+        return ''
+    maxlen = len(existmat[0])
+    if l > maxlen:
+        return ''
+    maxenergy = len(existmat[0][0]) - 1
+    if energy > maxenergy:
         return ''
 
     chararr = []
@@ -434,7 +482,7 @@ def build_free_energy_poly(length, pairwiseenergy):
                 for d1 in TYPE_ARR:
                     for d2 in TYPE_ARR:
                         temppoly = polypairlist[-1][0][(length >> 1, typea, d1)] * polypairlist[-1][0][(length >> 1, d2, typeb)]
-                        temppoly = temppoly.multiplyBySingleton(pairwiseenergy(d1, d2), 1)
+                        temppoly = temppoly.multiply_by_singleton(pairwiseenergy(d1, d2), 1)
                         dicty[(length, typea, typeb, d1, d2)] = temppoly
 
         
@@ -457,7 +505,7 @@ def build_free_energy_poly(length, pairwiseenergy):
                     for d2 in TYPE_ARR:
                         for d3 in TYPE_ARR:
                             temppoly = polypairlist[-1][0][(length >> 1, typea, d1)] * polypairlist[-1][0][(length >> 1, d2, typeb)]
-                            temppoly = temppoly.multiplyBySingleton(pairwiseenergy(d1, d3) + pairwiseenergy(d3, d2), 1)
+                            temppoly = temppoly.multiply_by_singleton(pairwiseenergy(d1, d3) + pairwiseenergy(d3, d2), 1)
                             dicty[(length, typea, typeb, d1, d2, d3)] = temppoly
 
         dictx = {}
@@ -529,8 +577,9 @@ def recursive_extract(length, energy, typea, typeb, pairwiseenergy, polypairlist
     return chararr
 
 ####################################################################################
-#
 def has_positive_energy_coeff(poly, energy):
+    """
+    """
     if energy < 0:
         return False
     if poly.degree < energy:
@@ -541,6 +590,8 @@ def has_positive_energy_coeff(poly, energy):
 #######################################################################################
 #
 def findd1d2(length, energy, typea, typeb, pairwiseenergy, polyset):
+    """
+    """
     for d1 in TYPE_ARR:
         polyd1 =  polyset[(length, typea, d1)]
         maxenergy = polyd1.degree
@@ -558,8 +609,9 @@ def findd1d2(length, energy, typea, typeb, pairwiseenergy, polyset):
     return None
 
 #######################################################################################
-#
 def findd1d2d3(length, energy, typea, typeb, pairwiseenergy, polyset):
+    """
+    """
     for d1 in TYPE_ARR:
         polyd1 = polyset[(length, typea, d1)]
         maxenergy = polyd1.degree
@@ -580,18 +632,6 @@ def findd1d2d3(length, energy, typea, typeb, pairwiseenergy, polyset):
 
 ##################################################################################################
 # construct_bounded_energy_dna_list_poly(triplelist, pairwiseenergy):
-#     + Constructs and returns the list of DNA strings with the SAME length and bounded energy 
-#      satisfied the conditions specified in triplelist. 
-#
-# Input specification:
-#    + triplelist: a list of triples (l, A, B). Each triple (l, A, B) contains information
-#        about the DNA we want to construct:
-#            - l: the length of the DNA string
-#            - A: the lower bound of the free energy of the DNA string
-#            - B: the upper bound of the free energy of the DNA string
-#    + pairwiseenergy: a function that takes in two inputs X and Y where
-#        X, Y in {'A', 'C', 'G', 'T'} and returns the free energy
-#        between the ordered pair (X, Y), which is an integer value.
 #
 # Assumption:
 #     + Unlike construct_bounded_energy_dna_list, in this function, we assume all
@@ -600,6 +640,22 @@ def findd1d2d3(length, energy, typea, typeb, pairwiseenergy, polyset):
 # Detailed Flow:
 #    + 
 def construct_bounded_energy_dna_list_poly(triplelist, pairwiseenergy):
+    """
+    Construct a list of DNA strings with length and bounded free energy satisfied the conditions specified in triplelist. This is an implementation of generating function algorithm to solve the Bounded Energy Strand Generation Problem.
+
+    Inputs:
+     + triplelist: a list of triples (l, A, B). Each triple (l, A, B) contains information about the DNA we want to construct:
+        - l: the length of the DNA string
+        - A: the lower bound of the free energy of the DNA string
+        - B: the upper bound of the free energy of the DNA string
+     + pairwiseenergy: a function that takes in two inputs X and Y where X, Y in {'A', 'C', 'G', 'T'} and returns a non-negative integer indicating the free energy between the ordered pair (X, Y).
+
+    Output:
+     + a list of DNA strings with length and bounded free energy satisfied the conditions specified in triplelist
+
+    Exception:
+     + a RuntimeError will be raised if the first parameter of every entry in triplelist is not the same (i.e. The list of DNA words must have the same length)
+    """
     numdna = len(triplelist)
     if numdna == 0:
         return []
