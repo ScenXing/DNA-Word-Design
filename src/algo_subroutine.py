@@ -7,7 +7,7 @@
 #     Short DNA Words" by Kao et al.
 #
 #    You can retrieve a copy of this paper at:
-#        http://arxiv.org/pdf/1201.6358.pdf 
+#        http://arxiv.org/pdf/1201.6358.pdf
 #
 
 # Self-written python modules
@@ -38,8 +38,8 @@ def initlength14(n, k1, k4, delta = 0.1):
 
     Methodology
     + Let c1 = 2 + delta
-    + Let c2 = 0.5 * c1 * {log(c1 / ((c1 - 2) * ln(2))) + 2.5 - 1 / ln(2)} 
-    + Set l = ceil(c1 * log(n) + c2 * k) 
+    + Let c2 = 0.5 * c1 * {log(c1 / ((c1 - 2) * ln(2))) + 2.5 - 1 / ln(2)}
+    + Set l = ceil(c1 * log(n) + c2 * k)
     """
 
     c1 = 2 + delta
@@ -58,7 +58,7 @@ def initlength14(n, k1, k4, delta = 0.1):
 #    binary search to find the minimum length based on the initial length given
 #    as an input.
 #
-# Time complexity: O(k4 * log(initlength)) 
+# Time complexity: O(k4 * log(initlength))
 #    (This does not take into account the complexity of arithmetics)
 def binarysearchlength14(n, k1, k4, initlength, pascalprefixsum):
     """
@@ -70,7 +70,7 @@ def binarysearchlength14(n, k1, k4, initlength, pascalprefixsum):
     + pascalprefixsum: a 2D array (which is essentially a Python list of lists of integers) with at least initlength + 1 rows. Row i has (i + 1) entries. And pascalprefixsum[i][j] = sum ( i Choose h ) for h = 0, ..., j
 
     Output:
-    + l: an integer indicating the minimum length satisfying the above condition 
+    + l: an integer indicating the minimum length satisfying the above condition
     """
     k = max(k1, k4)
 
@@ -87,7 +87,7 @@ def binarysearchlength14(n, k1, k4, initlength, pascalprefixsum):
         """
         """
         result = m_fraction.MyFraction(pascalprefixsum[l][k - 1], helper.fastpower(2, l))
-        
+
         powtwo = helper.fastpower(2, l - k4 + 1)
         sumtemp = m_fraction.MyFraction(0, 1)
         for i in xrange(l - k4 + 1, l):
@@ -117,14 +117,14 @@ def binarysearchlength14(n, k1, k4, initlength, pascalprefixsum):
 #####################################################################################
 # compute_expcount_empty(n, l, k1, k4, pascalprefixsum):
 #    - Computes and returns the value of ExpCount(M, k1, k4) when the matrix
-#        M of size n x l is empty. 
+#        M of size n x l is empty.
 #
 # The formula is mentioned in the proof of Lemma 10 in the paper.
 #
 # Input description:
 #    - pascalprefixsum: is a 2D array with at least l + 1 rows. Row i has (i + 1) entries
 #    - pascalprefixsum[i][j] = sum ( iCh ) for h = 0, ..., j
-# Note: iCh denotes i Choose h   
+# Note: iCh denotes i Choose h
 def compute_expcount_empty(n, l, k1, k4, pascalprefixsum):
     """
     Compute the value of ExpCount(M, k1, k4) where M is an empty partially assigned matrix of size n x l (i.e. every entry is an unknown).
@@ -135,20 +135,20 @@ def compute_expcount_empty(n, l, k1, k4, pascalprefixsum):
     + pascalprefixsum: a 2D array (which is essentially a Python list of lists of integers) with at least initlength + 1 rows. Row i has (i + 1) entries. And pascalprefixsum[i][j] = sum ( i Choose h ) for h = 0, ..., j
 
     Output:
-    +  
+    +
     """
 
-    k = max(k1, k4)    
+    k = max(k1, k4)
     firstterm = m_fraction.MyFraction(((n * (n - 1)) / 2) * (1 + 2 * (k4 - 1)), 1)
 
     secondterm = m_fraction.MyFraction(pascalprefixsum[l][k - 1], helper.fastpower(2, l))
-        
+
     powtwo = helper.fastpower(2, l - k4 + 1)
     sumtemp = m_fraction.MyFraction(0, 1)
     for i in xrange(l - k4 + 1, l):
         sumtemp += m_fraction.MyFraction(pascalprefixsum[i][k4 - (l - i) - 1], powtwo)
         powtwo *= 2
-     sumtemp *= m_fraction.MyFraction(2)
+    sumtemp *= m_fraction.MyFraction(2)
     secondterm += sumtemp
     secondterm *= m_fraction.MyFraction((n * (n - 1)) / 2)
 
@@ -157,7 +157,7 @@ def compute_expcount_empty(n, l, k1, k4, pascalprefixsum):
 #####################################################################################
 # breakrun(str1, maxlenrun):
 #
-# Requirement: 
+# Requirement:
 #    - maxlenrun >= 2
 #    - str1 contains characters in {'0', '1', 'A', 'C', 'G', 'T'} only. Otherwise,
 #      the correctness of the algorithm is not guaranteed.
@@ -171,7 +171,7 @@ def compute_expcount_empty(n, l, k1, k4, pascalprefixsum):
 #            X = str1[0 ... floor(L / 2) - 1] and
 #            Y = str2[floor(L / 2) ... L - 1]
 #    2) Do the following procedure to X and the reverse of Y: After every maxlenrun - 1
-#       characters, or after we reach the last character of the string, insert a new character 
+#       characters, or after we reach the last character of the string, insert a new character
 #          which is complementary to the last character of the run we are considering.
 #       Let the resulted string be newX and newRY respectively.
 #    3) Concatenate newX and the reverse of newRY to form str2
@@ -225,7 +225,7 @@ def breakrun(str1, maxlenrun):
 #########################################################################################
 # update_numdiff(M, strpos, strid, unknownchar, numdiff1, numdiff4, n, l, k4):
 #    - Update the difference matrices when the newest fill-in entry is M[strid][strpos]
-#        assuming the entries in M are filled in the order top to bottom, 
+#        assuming the entries in M are filled in the order top to bottom,
 #        then left to right.
 #
 # Input description:
@@ -235,13 +235,13 @@ def breakrun(str1, maxlenrun):
 #    k4: the parameter of C4 constraint
 #
 #    numdiff1: a 2D array that has n rows. Row i has exactly (i + 1) columns (i = 0, ..., n - 1)
-#          numdiff1[a][b] = the number of positions k in strings M[a] and M[b] (b <= a) 
+#          numdiff1[a][b] = the number of positions k in strings M[a] and M[b] (b <= a)
 #            such that
 #            M[a][k] and M[b][k] are not unknown, and
 #            M[a][k] != M[b][k]
 #
 #    numdiff4: a 3D array of dimension (k4 - 1) x n x n
-#          numdiff4[x][a][b] = the number of positions k in substrings 
+#          numdiff4[x][a][b] = the number of positions k in substrings
 #            M[a][0 ... l - k4 + x] and M[b][l - (l - k4 + 1 + x) ... l - 1] such that
 #                M[a][k] and M[b][l - (l - k4 + 1 + x) + k] are not unknown, and
 #                M[a][k] != M[b][l - (l - k4 + 1 + x) + k]
@@ -255,7 +255,7 @@ def update_numdiff(M, strpos, strid, unknownchar, numdiff1, numdiff4, n, l, k4):
      + n: the number of rows in M
      + l: the number of columns in M
      + M: a partially assigned k1, k4-distance matrix of size n x l
-     + 
+     +
     """
 
     # Update numdiff1
@@ -273,18 +273,18 @@ def update_numdiff(M, strpos, strid, unknownchar, numdiff1, numdiff4, n, l, k4):
                 if comparepos < l and M[curstrid][comparepos] != unknownchar and M[curstrid][comparepos] != M[strid][strpos]:
                     numdiff4[sublen - (l - k4 + 1)][strid][curstrid] += 1
 
-                
+
                 # Y = M[curstrid] and X = M[strid]
                 # Compare M[strid][strpos] and M[curstrid][sublen + strpos - l]
                 comparepos = sublen + strpos - l
                 if comparepos >= 0 and M[curstrid][comparepos] != unknownchar and M[curstrid][comparepos] != M[strid][strpos]:
-                    numdiff4[sublen - (l - k4 + 1)][curstrid][strid] += 1 
-                    
+                    numdiff4[sublen - (l - k4 + 1)][curstrid][strid] += 1
+
 ################################################################################
 #
 def compute_change_in_expcount(M, strpos, strid, newval, unknownchar, numdiff1, numdiff4, n, l, k1, k4, pascalprefixsum):
     k = max(k1, k4)
-    
+
     totaldiff = m_fraction.MyFraction(0, 1)
     # Compute the change contributed by the C1 constraint
     for curstrid in xrange(strid):
@@ -307,16 +307,16 @@ def compute_change_in_expcount(M, strpos, strid, newval, unknownchar, numdiff1, 
                 oldnumdiff = numdiff4[sublen - (l - k4 + 1)][strid][curstrid]
 
                 totaldiff += compute_change_in_prob(sublen, k4 - (l - sublen), numassigned, oldnumdiff, newval != M[curstrid][l - sublen + strpos], pascalprefixsum)
-                
+
             # Consider M[strid][l - sublen ... l - 1] and M[curstrid][0 ... sublen - 1]
             if sublen + strpos - l >= 0 and M[curstrid][sublen + strpos - l] != unknownchar:
                 numassigned = max(0, strpos - l + sublen)
                 oldnumdiff = numdiff4[sublen - (l - k4 + 1)][curstrid][strid]
 
                 totaldiff += compute_change_in_prob(sublen, k4 - (l - sublen), numassigned, oldnumdiff, newval != M[curstrid][sublen + strpos - l], pascalprefixsum)
-                
+
     return totaldiff
-            
+
 
 ################################################################################
 # compute_change_in_prob(l, k, s, t, diffincrease, pascalprefixsum):
@@ -326,7 +326,7 @@ def compute_change_in_expcount(M, strpos, strid, newval, unknownchar, numdiff1, 
 def compute_change_in_prob(l, k, s, t, diffincrease, pascalprefixsum):
     if t > k - 1:
         return m_fraction.MyFraction(0, 1)
-    
+
     denom = helper.fastpower(2, l - s)
     numer = 1
     if t < k - 1:
